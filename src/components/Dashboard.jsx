@@ -1,8 +1,4 @@
-/**
- * Dashboard — Main application layout.
- * Orchestrates webcam feed, emotion detection, music player, playlist, and cool effects.
- */
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import Tilt from 'react-parallax-tilt';
 import { getMoodConfig } from '../utils/moodConfig';
 import useEmotionDetection from '../hooks/useEmotionDetection';
@@ -64,10 +60,8 @@ function Dashboard() {
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
     
-    // Draw the current video frame
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     
-    // Get image
     const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
     
     const newSnap = {
@@ -75,7 +69,7 @@ function Dashboard() {
       image: dataUrl,
       mood: activeMood,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      rotation: Math.floor(Math.random() * 10) - 5 // Random rotation between -5 and 5
+      rotation: Math.floor(Math.random() * 10) - 5
     };
     
     setSnapshots((prev) => [newSnap, ...prev]);
@@ -84,6 +78,12 @@ function Dashboard() {
   const deleteSnapshot = (id) => {
     setSnapshots((prev) => prev.filter(s => s.id !== id));
   };
+
+  // Auto-skip broken YouTube videos
+  const handleTrackError = useCallback(() => {
+    console.warn('Video failed to load or embedding disabled. Skipping to next...');
+    setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % tracks.length);
+  }, [tracks.length]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -112,10 +112,8 @@ function Dashboard() {
         height: '100vh',
       }}
     >
-      {/* Dynamic Particle Background */}
       <ParticlesBackground moodColor={config.color} particleType={config.particleType} />
 
-      {/* Header */}
       <header className="dashboard-header" style={{ position: 'relative', zIndex: 10 }}>
         <div className="dashboard-header-left">
           <span className="dashboard-logo" style={{ filter: `drop-shadow(0 0 10px ${config.color})` }}>🎵</span>
@@ -157,11 +155,9 @@ function Dashboard() {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="dashboard-main" style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column' }}>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', width: '100%' }} className="dashboard-grid-responsive">
-          {/* Left column: Webcam + Emotion */}
           <div className="dashboard-left" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <Tilt tiltMaxAngleX={3} tiltMaxAngleY={3} glareEnable glareMaxOpacity={0.1} scale={1.02} transitionSpeed={2000}>
               <WebcamFeed
@@ -189,13 +185,14 @@ function Dashboard() {
             )}
           </div>
 
-          {/* Right column: Player + Playlist */}
           <div className="dashboard-right" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <Tilt tiltMaxAngleX={4} tiltMaxAngleY={4} glareEnable glareMaxOpacity={0.1}>
               <MusicPlayer
                 currentTrack={currentTrack}
                 moodColor={config.color}
                 moodGradient={config.gradient}
+                onTrackError={handleTrackError}
+                onTrackEnd={handleTrackError} 
               />
             </Tilt>
 
@@ -213,7 +210,6 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Bottom row: Polaroid Gallery */}
         <MoodGallery snapshots={snapshots} onDeleteSnapshot={deleteSnapshot} />
 
       </main>

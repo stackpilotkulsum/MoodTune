@@ -1,12 +1,16 @@
-import { useCallback } from "react";
-import Particles from "react-tsparticles";
-import { loadFull } from "tsparticles";
+import { useEffect, useState } from "react";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { loadSlim } from "@tsparticles/slim";
 
 function ParticlesBackground({ moodColor, particleType }) {
-  const particlesInit = useCallback(async engine => {
-    // you can initiate the tsParticles instance (engine) here, adding custom shapes or presets
-    // this loads the tsparticles package bundle, it's the easiest method for getting everything ready
-    await loadFull(engine);
+  const [init, setInit] = useState(false);
+
+  useEffect(() => {
+    initParticlesEngine(async (engine) => {
+      await loadSlim(engine);
+    }).then(() => {
+      setInit(true);
+    });
   }, []);
 
   const getOptions = () => {
@@ -25,14 +29,13 @@ function ParticlesBackground({ moodColor, particleType }) {
       },
       interactivity: {
         detect_on: "canvas",
-        events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" }, resize: true },
-        modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } },
+        events: { onHover: { enable: true, mode: "repulse" }, onClick: { enable: true, mode: "push" }, resize: true },
+        modes: { repulse: { distance: 100, duration: 0.4 }, push: { quantity: 4 } },
       },
-      retina_detect: true,
+      detectRetina: true,
     };
 
     if (particleType === 'rain') {
-      // Rain for Sad
       options.particles.move.direction = "bottom";
       options.particles.move.speed = 15;
       options.particles.move.straight = true;
@@ -41,7 +44,6 @@ function ParticlesBackground({ moodColor, particleType }) {
       options.particles.opacity.value = 0.5;
       options.particles.number.value = 80;
     } else if (particleType === 'fire') {
-      // Fire/Embers for Angry
       options.particles.move.direction = "top";
       options.particles.move.speed = 3;
       options.particles.shape.type = "circle";
@@ -50,19 +52,17 @@ function ParticlesBackground({ moodColor, particleType }) {
       options.particles.color.value = ["#f87171", "#ef4444", "#dc2626", "#fbbf24"];
       options.particles.number.value = 60;
     } else if (particleType === 'sunbeams') {
-      // Confetti / Sunbeams for Happy
       options.particles.move.direction = "none";
       options.particles.move.speed = 2;
       options.particles.shape.type = ["circle", "triangle", "polygon"];
       options.particles.size.value = { min: 3, max: 8 };
       options.particles.color.value = ["#fbbf24", "#f59e0b", "#ffffff", "#fef3c7"];
       options.particles.number.value = 50;
-      options.interactivity.events.onhover.mode = "bubble";
+      options.interactivity.events.onHover.mode = "bubble";
     } else if (particleType === 'stars') {
-      // Stars / Fast moving for Surprised
       options.particles.move.direction = "none";
       options.particles.move.speed = 6;
-      options.particles.move.out_mode = "bounce";
+      options.particles.move.outModes = "bounce";
       options.particles.shape.type = "star";
       options.particles.size.value = { min: 2, max: 5 };
       options.particles.number.value = 60;
@@ -72,11 +72,14 @@ function ParticlesBackground({ moodColor, particleType }) {
     return options;
   };
 
+  if (!init) {
+    return null;
+  }
+
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
       <Particles
         id="tsparticles"
-        init={particlesInit}
         options={getOptions()}
         style={{ width: '100%', height: '100%', position: 'absolute' }}
       />

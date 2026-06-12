@@ -1,48 +1,56 @@
 /**
  * MusicPlayer — Now-playing card with YouTube Embed
  */
+import YouTube from 'react-youtube';
 
 function MusicPlayer({
   currentTrack,
   moodColor,
   moodGradient,
+  onTrackError,
+  onTrackEnd
 }) {
   if (!currentTrack) {
     return (
       <div className="player-card" style={{ '--mood-color': moodColor }}>
-        <div className="player-label">Now Playing</div>
-        <div className="player-empty">
-          <div className="player-empty-icon">📺</div>
-          <p>No track playing</p>
-          <p className="player-empty-hint">
-            Your mood will automatically queue tracks
-          </p>
+        <h2 className="section-title">NOW PLAYING</h2>
+        <div className="player-empty" style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '8px', padding: '40px', textAlign: 'center', marginTop: '16px' }}>
+          <p>No track selected.</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="player-card" style={{ '--mood-color': moodColor, padding: '16px' }}>
-      <div className="player-label" style={{ marginBottom: '12px' }}>Now Playing</div>
+  const opts = {
+    height: '100%',
+    width: '100%',
+    playerVars: {
+      autoplay: 1,
+      modestbranding: 1,
+      rel: 0,
+      showinfo: 0,
+    },
+  };
 
-      {/* YouTube Embed Player */}
-      <div className="player-embed-container" style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', aspectRatio: '16/9' }}>
-        <iframe
-          src={`https://www.youtube.com/embed/${currentTrack.id}?autoplay=1`}
-          width="100%"
-          height="100%"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          title={currentTrack.title}
-          style={{ display: 'block', width: '100%', height: '100%' }}
-        ></iframe>
+  return (
+    <div className="player-card" style={{ '--mood-color': moodColor }}>
+      <h2 className="section-title">NOW PLAYING</h2>
+
+      <div className="player-art-wrapper" style={{ marginTop: '16px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', position: 'relative', paddingTop: '56.25%' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+          <YouTube 
+            videoId={currentTrack.id} 
+            opts={opts} 
+            onError={onTrackError}
+            onEnd={onTrackEnd}
+            style={{ width: '100%', height: '100%' }}
+          />
+        </div>
       </div>
-      
-      <div style={{ marginTop: '16px', textAlign: 'center' }}>
-         <h3 style={{ fontSize: '18px', fontWeight: 'bold' }}>{currentTrack.title}</h3>
-         <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{currentTrack.artist}</p>
+
+      <div className="player-info" style={{ textAlign: 'center', marginTop: '20px' }}>
+        <h3 className="player-track-name" style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px 0' }}>{currentTrack.title}</h3>
+        <p className="player-artist-name" style={{ color: '#aaa', margin: 0, fontSize: '14px' }}>{currentTrack.artist}</p>
       </div>
     </div>
   );
